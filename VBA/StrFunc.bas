@@ -4,7 +4,7 @@ Option Compare Text
 Option Base 1
 
 '`String Function Library
-'Version 1.1.1
+'Version 1.1.2
 
 'Imports
 'Microsoft Scripting Runtime
@@ -17,6 +17,7 @@ Option Base 1
 ' 1.0.9 - Syntax corrections
 ' 1.1.0 - Syntax corrections
 ' 1.1.1 - Substitute now works, and is named Substitute2
+' 1.1.2 - Fixed Contains, StartsWith, EndsWith, and IsEmpty2 to check Collections and Arrays
 
 'Current
 
@@ -24,9 +25,9 @@ Private Const NoParam = "@@@@@"
 
 'Text Analysis
 
-Public Function Contains(ByVal checktext As String, fortext) As Boolean
-  If IsArray(fortext) Then
-    Dim Result: Contains = False
+Public Function Contains(ByVal checktext As String, fortext as Variant) As Boolean
+  If IsArray(fortext) Or TypeName(fortext) = "Collection" Then
+    Dim result: Contains = False
     Dim Item: For Each Item In fortext
       If InStr(checktext, Item) > 0 Then
         Contains = True
@@ -38,16 +39,16 @@ Public Function Contains(ByVal checktext As String, fortext) As Boolean
   End If
 End Function
 
-Public Function StartsWith(ByVal checktext As String, fortext) As Boolean
-  If IsArray(fortext) Then
-    Dim Result: StartsWith = False
+Public Function StartsWith(ByVal checktext As String, fortext as Variant) As Boolean
+  If IsArray(fortext) Or TypeName(fortext) = "Collection" Then
+    Dim result: StartsWith = False
     Dim Item: For Each Item In fortext
       If InStr(checktext, Item) = 1 Then
         StartsWith = True
         Exit Function
       End If
     Next Item
-  Else
+  ElseIf (IsText(fortext)) Then
     StartsWith = InStr(checktext, fortext) = 1
   End If
 End Function
@@ -56,9 +57,9 @@ Private Function ew(ByVal C As String, ByVal f As String) As Boolean
   ew = InStr(C, f) = (Len(C) - Len(f) + 1) And InStr(C, f) > 0
 End Function
 
-Public Function EndsWith(ByVal checktext As String, fortext) As Boolean
-  If IsArray(fortext) Then
-    Dim Result: EndsWith = False
+Public Function EndsWith(ByVal checktext As String, fortext as Variant) As Boolean
+  If IsArray(fortext) Or TypeName(fortext) = "Collection" Then
+    Dim result: EndsWith = False
     Dim Item: For Each Item In fortext
       If ew(checktext, Item) Then
         EndsWith = True
@@ -87,7 +88,14 @@ End Function
 
 'IsNumeric Variants
 
-Public Function IsEmpty2(ByVal checkvalue) As Boolean
+Public Function IsEmpty2(checkvalue as Variant) As Boolean
+  If TypeName(checkvalue) = "Collection" Then
+    IsEmpty2 = checkvalue.count = 0
+    Exit Function
+  ElseIf IsArray(checkvalue) Then
+	IsEmpty2 = (WorksheetFunction.CountA(checkvalue) = 0)
+	Exit Function
+  End If
   IsEmpty2 = IsEmpty(checkvalue) Or IsNull(checkvalue) Or Len(checkvalue) = 0
 End Function
 
