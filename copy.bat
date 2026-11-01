@@ -1,0 +1,1 @@
+pwsh copy.ps1
